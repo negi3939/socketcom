@@ -31,6 +31,9 @@ Sockcom_s::Sockcom_s(){
 }
 
 Sockcom_s::Sockcom_s(int p,char *ipp){
+  std::cout << "this is server" << std::endl;
+  port = p;
+  ip = ipp;
   sock = connectFromClientSingle( port ,ip);
   std::string buffer;
   recvv(buffer);
@@ -368,3 +371,52 @@ int Sockcom::recvv(Sequence<float,VectorXf> &seq,int n,int an){
   return ret;
 }
 
+#if defined(COMMCLIENT_IS_MAIN)
+int main(){
+  Sockcom_c *comv;
+  comv= new Sockcom_c(2000,"192.168.4.200");
+  Sequence<float,VectorXf> hogeseq;
+  std::vector<VectorXf> hogevector;
+  std::string st;
+  st = "start";
+  comv->sendd(st);
+  //comv->recvv(hogevector,6,1000);
+  //PRINT_MAT(hogevector[999]);
+  comv->recvv(hogeseq,6,100);
+  hogeseq.show(99);
+  delete comv;
+}
+#endif
+
+#if defined(COMMSERVER_IS_MAIN)
+int main(){
+  Sockcom_s *com;
+  com = new Sockcom_s(2000,"192.168.4.200");
+  std::string st;
+  com->recvv(st);
+  std::cout << st << std::endl;
+  VectorXf hoge(6);
+  std::vector<VectorXf> hogevector;
+  hoge(0) = 1;
+  hoge(1) = 2;
+  hoge(2) = 3;
+  hoge(3) = 4;
+  hoge(4) = 5;
+  hoge(5) = 6;
+  float timmm;
+  VectorXf hov(6);
+  Sequence<float,VectorXf> hogeseq;
+  for(int ii=0;ii<1000;ii++){
+    timmm = 0.1*(float)ii;
+    for(int jj=0;jj<6;jj++){
+      hoge(jj) = ii*jj;
+      hov(jj) = hoge(jj);
+    }
+    hogeseq.push_back(timmm,hov);
+    hogevector.push_back(hov);
+  }
+  //com->sendd(hogevector);
+  com->sendd(hogeseq);
+  delete com;
+}
+#endif
