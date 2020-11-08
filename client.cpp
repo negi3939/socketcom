@@ -12,15 +12,7 @@
 
 int main(){
   Sockcom_c *comv;
-  comv= new Sockcom_c;
-  Sequence<float,VectorXf> hogeseq;
-  std::vector<VectorXf> hogevector;
-  std::string st;
-  st = "start";
-  comv->sendd(st);
-  //comv->recvv(hogevector,6,1000);
-  //PRINT_MAT(hogevector[999]);
-  comv->recvv(hogeseq,6,100);
-  hogeseq.show(99);
+  comv= new Sockcom_c();
+  comv->waittoend();
   delete comv;
 }

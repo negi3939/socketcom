@@ -6,13 +6,12 @@
 ###        $ make clean target=hoge   # The executable file which written in hoge will removed.                                              ###
 ################################################################################################################################################
 
-ifdef target
-	TARGET=$(target)
-else
-	TARGET=sock
-	#comclient
-	#comserver
-	#sequenc
+TARGET=$(MAKECMDGOALS)
+ifeq ($(MAKECMDGOALS),)
+	TARGET=comclient
+endif
+ifeq ($(MAKECMDGOALS),clean)
+	TARGET=comclient
 endif
 
 
@@ -26,7 +25,7 @@ ifeq "$(GCCVERSION)" "g++ (GCC) 3.3.5 (Debian 1:3.3.5-13)"
 	CXXFLAGS += -DGCC3p3
 endif
 
-ifeq ($(TARGET),sequence)
+ifeq ($(TARGET),seq)
 	SOURCE_MAIN = sequence.cpp
 	CXXFLAGS += -DSEQUENCE_IS_MAIN
 endif
@@ -57,12 +56,15 @@ ifeq ($(TARGET),hoge)
 	CXXFLAGS += -Dhogehoge_MAIN
 endif
 
+SUBOBJ = $(SOURCE_SUB:%.cpp=%.o)
+MAINOBJ = $(SOURCE_MAIN:%.cpp=%.o)
 
 PROGRAM = $(SOURCE_MAIN:%.cpp=%.out)
-SUBOBJ = $(SOURCE_SUB:%.cpp=%.o)
+PROGRAM += $(SUBOBJ) $(MAINOBJ)
 
-
-all: $(PROGRAM)
+comclient: $(PROGRAM)
+comserver: $(PROGRAM)
+seq: $(PROGRAM)
 
 %.out: %.o $(SUBOBJ)
 	g++ -o $@ $^ $(LDFLAGS) -w
