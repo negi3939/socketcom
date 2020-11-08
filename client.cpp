@@ -13,6 +13,6 @@
 int main(){
   Sockcom_c *comv;
   comv= new Sockcom_c();
-  comv->waittoend();
+  comv->waittoallend();
   delete comv;
 }

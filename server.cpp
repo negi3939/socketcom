@@ -13,6 +13,7 @@
 int main(){
   Sockcom_s *com;
   com = new Sockcom_s();
-  com->waittoend();
+  com->waittoallend();
+  std::cout << "end" << std::endl;
   delete com;
 }

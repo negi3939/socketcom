@@ -12,25 +12,42 @@ class Structthis{
 		void *instthis;
 };
 
+class Structipport{
+  public:
+    int portnum;
+    char *ip_addr;
+};
+
 class Sockcom {
   protected:
-    int *sock;
     int port;
     int max_clinum;
     int endfl;
+    int endallfl;
+    char *ip;
+    char *host;
+    int *sock;
+    pthread_t *centerthread;
     pthread_t *sockthread;
     pthread_mutex_t mutex;
     void connectToServer( int portnum , const char *ip_addr );
     void connectFromClient( int portnum , const char *ip_addr );
+    void connectFromClient(void *send);//client数に応じたmulti thread起動のためのthread
+    static void* launchCfromS(void *pParam){
+        	reinterpret_cast<Sockcom*>(reinterpret_cast<Structthis*>(pParam)->instthis)->connectFromClient(reinterpret_cast<Structthis*>(pParam)->send);
+        	pthread_exit(NULL);
+    }
     static void* launchthread(void *pParam){
         	reinterpret_cast<Sockcom*>(reinterpret_cast<Structthis*>(pParam)->instthis)->sock_func(reinterpret_cast<Structthis*>(pParam)->send);
         	pthread_exit(NULL);
-    	}
+    }
   public:
     Sockcom();
     ~Sockcom();
     void waittoend();
+    void waittoallend();
     void exitsock();
+    void exitallsock();
     int sendd(void *buf,int len,int thrnum);
     int sendd(std::string s,int thrnum);
     int sendd(double num,int thrnum);
@@ -58,7 +75,6 @@ class Sockcom {
 
 class Sockcom_s : public Sockcom{
   protected:
-    char *ip;
     void init();
   public:
     Sockcom_s();
@@ -70,7 +86,6 @@ class Sockcom_s : public Sockcom{
 
 class Sockcom_c : public Sockcom{
   protected:
-    char *host;
     void init();
   public:
     Sockcom_c();

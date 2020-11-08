@@ -21,6 +21,7 @@
 Sockcom::Sockcom(){
   max_clinum = 10;
   endfl = 0;
+  endallfl = 0;
 }
 
 Sockcom::~Sockcom(){}
@@ -49,6 +50,7 @@ void Sockcom::connectToServer( int portnum , const char *ip_addr ){
     l_count++;
     if(l_count%10000==0){std::cout << "wait for connecting.   sock is " << sock2 << " count " << l_count <<  std::endl;}
   }
+  
   int thnum = 0;
   sock[thnum] = sock2;
   Structthis *sockksend = new Structthis;
@@ -59,27 +61,31 @@ void Sockcom::connectToServer( int portnum , const char *ip_addr ){
   delete sockksend;
 }
 
-void Sockcom::waittoend(){
-  int l_endfl=0;
-  while(1){
-    pthread_mutex_lock(&mutex);
-    l_endfl = endfl;
-    pthread_mutex_unlock(&mutex);
-    if(l_endfl!=0){break;}
-  }
-}
-
-void Sockcom::exitsock(){
-  pthread_mutex_lock(&mutex);
-  endfl = 1;
-  pthread_mutex_unlock(&mutex);
-}
-
 void Sockcom::connectFromClient( int portnum , const char *ip_addr ){
+  pthread_mutex_init(&mutex,NULL);
+  centerthread = new pthread_t;
+  //threadに渡す情報の準備
+  Structipport *sendipport = new Structipport;//ipとportnameを登録インスタンス
+  sendipport->portnum = portnum;
+  sendipport->ip_addr = ip_addr;
+  Structthis *sockksend = new Structthis;//このSockcomそのもののインスタンスを登録
+  sockksend->instthis = (void*)this;
+  sockksend->send = (void*)sendipport;//ipとportname登録インスタンスを格納
+  pthread_create(centerthread,NULL,this->launchCfromS,sockksend);
+  sleep(1);
+}
+
+//client数に応じたmulti thread起動のためのthread
+void Sockcom::connectFromClient(void *send){
+  int portnum; char *ip_addr;
+  Structipport *sendipport = (Structipport *)send;
+  portnum = sendipport->portnum;
+  ip_addr = sendipport->ip_addr;
+  std::cout << "portnum : " << portnum << "  ip_addr : " << ip_addr <<std::endl;
+
   struct sockaddr_in saddr;
   unsigned short     port;
   int                sock1 , L;
-  pthread_mutex_init(&mutex,NULL);
   if( portnum < 1024 || portnum > 65535 ){
     fprintf( stderr , "error: invarid port number %d\n" , portnum );
     sock1 = -2;
@@ -98,6 +104,7 @@ void Sockcom::connectFromClient( int portnum , const char *ip_addr ){
   length = sizeof( struct sockaddr_in );
   for(int ii=0;ii<max_clinum;ii++){
     sock2  = accept( sock1 , (struct sockaddr *)&caddr , &length );
+    std::cout << "accepted as num : " << ii <<std::endl;
     sock[ii] = sock2;
     Structthis *sockksend = new Structthis;
 	  sockksend->instthis = (void*)this;
@@ -107,6 +114,40 @@ void Sockcom::connectFromClient( int portnum , const char *ip_addr ){
     delete sockksend;
   }
   close( sock1 );
+}
+
+void Sockcom::waittoend(){
+  int l_endfl=0;
+  while(1){
+    pthread_mutex_lock(&mutex);
+    l_endfl = endfl;
+    pthread_mutex_unlock(&mutex);
+    if(l_endfl!=0){break;}
+  }
+}
+
+void Sockcom::waittoallend(){
+  int l_endallfl=0;
+  while(1){
+    pthread_mutex_lock(&mutex);
+    l_endallfl = endallfl;
+    pthread_mutex_unlock(&mutex);
+    if(l_endallfl!=0){break;}
+  }
+}
+
+void Sockcom::exitsock(){
+  pthread_mutex_lock(&mutex);
+  endfl = 1;
+  pthread_mutex_unlock(&mutex);
+  std::cout << "exit a socket com" << std::endl;
+}
+
+void Sockcom::exitallsock(){
+  pthread_mutex_lock(&mutex);
+  endallfl = 1;
+  pthread_mutex_unlock(&mutex);
+  std::cout << "exit all socket coms" << std::endl;
 }
 
 int Sockcom::sendd(void *buf,int len,int thrnum){
@@ -417,6 +458,7 @@ void Sockcom_s::sock_functest(int thnum){
 
 
 Sockcom_c::Sockcom_c() : Sockcom(){
+  std::cout << "this is client" << std::endl;
   port=2000;
   char *h ="127.0.0.1";
   host = h;
@@ -424,6 +466,7 @@ Sockcom_c::Sockcom_c() : Sockcom(){
 }
 
 Sockcom_c::Sockcom_c(int p,char *h) : Sockcom(){
+  std::cout << "this is client" << std::endl;
   port = p;
   host = h;
   init();
@@ -438,6 +481,7 @@ Sockcom_c::~Sockcom_c(){
 void Sockcom_c::init(){
   sock = new int[1];
   sockthread = new pthread_t[1];
+  std::cout << "portnum : " << port << "  host : " << host <<std::endl;
   connectToServer( port , host );
 }
 
@@ -465,4 +509,23 @@ void Sockcom_c::sock_functest(int thnum){
   recvv(hogeseq,6,100,thnum);
   hogeseq.show(99);
   exitsock();
+  exitallsock();
 }
+
+#if defined(COMMCLIENT_IS_MAIN)
+int main(){
+  Sockcom_c *comv;
+  comv= new Sockcom_c(2000,"192.168.4.200");
+  comv->waittoallend();
+  delete comv;
+}
+#endif
+
+#if defined(COMMSERVER_IS_MAIN)
+int main(){
+  Sockcom_s *com;
+  com = new Sockcom_s(2000,"192.168.4.200");
+  com->waittoallend();
+  delete com;
+}
+#endif
