@@ -170,7 +170,7 @@ int Sockcom::sendd(double num,int thrnum){
 }
 
 int Sockcom::sendd(float num,int thrnum){
-  return send( sock[thrnum] , &num , sizeof(double) , 0 );
+  return send( sock[thrnum] , &num , sizeof(float) , 0 );
 }
 
 
@@ -185,18 +185,34 @@ int Sockcom::sendd(VectorXd &eigenV,int thrnum){
   for(int ii = 0;ii<eigenV.size();ii++){
     senddouble[ii] = eigenV(ii);
   }
-  int ret = send( sock[thrnum] , senddouble , eigenV.size()*sizeof(double) , 0 );
+  int ret = 0;
+  while(1){
+    if(eigenV.size()*sizeof(double) - ret > maxsize){
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) ,maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) , eigenV.size()*sizeof(double) - ret , 0 );
+    }
+    if(ret>=eigenV.size()*sizeof(double)){break;}
+  }
   delete[] senddouble;
   return ret;
 }
 
 int Sockcom::sendd(VectorXf &eigenV,int thrnum){
-  float *senddouble = new float[eigenV.size()];
+  float *sendfloat = new float[eigenV.size()];
   for(int ii = 0;ii<eigenV.size();ii++){
-    senddouble[ii] = eigenV(ii);
+    sendfloat[ii] = eigenV(ii);
   }
-  int ret = send( sock[thrnum] , senddouble , eigenV.size()*sizeof(float) , 0 );
-  delete[] senddouble;
+  int ret = 0;
+  while(1){
+    if(eigenV.size()*sizeof(float) - ret > maxsize){
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) ,maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) , eigenV.size()*sizeof(float) - ret , 0 );
+    }
+    if(ret>=eigenV.size()*sizeof(float)){break;}
+  }
+  delete[] sendfloat;
   return ret;
 }
 
@@ -207,19 +223,35 @@ int Sockcom::sendd(std::vector<VectorXd> &vectorV,int thrnum){
       senddouble[ii*vectorV[0].size()+jj] = vectorV[ii](jj);
     }
   }
-  int ret = send( sock[thrnum] , senddouble , vectorV.size()*vectorV[0].size()*sizeof(double) , 0 );
+  int ret = 0;
+  while(1){
+    if(vectorV.size()*vectorV[0].size()*sizeof(double) - ret > maxsize){
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) ,maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) , vectorV.size()*vectorV[0].size()*sizeof(double) - ret , 0 );
+    }
+    if(ret>=vectorV.size()*vectorV[0].size()*sizeof(double)){break;}
+  }
   delete[] senddouble;
   return ret;
 }
 int Sockcom::sendd(std::vector<VectorXf> &vectorV,int thrnum){
-  float *senddouble = new float[vectorV.size()*vectorV[0].size()];
+  float *sendfloat = new float[vectorV.size()*vectorV[0].size()];
   for(int ii = 0;ii<vectorV.size();ii++){
     for(int jj = 0;jj<vectorV[0].size();jj++){
-      senddouble[ii*vectorV[0].size()+jj] = vectorV[ii](jj);
+      sendfloat[ii*vectorV[0].size()+jj] = vectorV[ii](jj);
     }
   }
-  int ret = send( sock[thrnum] , senddouble , vectorV.size()*vectorV[0].size()*sizeof(float) , 0 );
-  delete[] senddouble;
+  int ret = 0;
+  while(1){
+    if(vectorV.size()*vectorV[0].size()*sizeof(float) - ret > maxsize){
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) ,maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) , vectorV.size()*vectorV[0].size()*sizeof(float) - ret , 0 );
+    }
+    if(ret>=vectorV.size()*vectorV[0].size()*sizeof(float)){break;}
+  }
+  delete[] sendfloat;
   return ret;
 }
 
@@ -234,24 +266,41 @@ int Sockcom::sendd(Sequence<double,VectorXd> &seq,int thrnum){
       senddouble[ii*(seq.vecsize()+1) + jj+1] = vvv(jj);
     }
   }
-  int ret = send( sock[thrnum] , senddouble , seq.size()*(seq.vecsize()+1)*sizeof(double) , 0 );
+  int ret = 0;
+  while(1){
+    if(seq.size()*(seq.vecsize()+1)*sizeof(double) - ret > maxsize){
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) , maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , senddouble + ret/sizeof(double) , seq.size()*(seq.vecsize()+1)*sizeof(double) - ret , 0 );
+    }
+    if(ret >= seq.size()*(seq.vecsize()+1)*sizeof(double)){break;}
+  }
   delete[] senddouble;
   return ret;
 }
 
 int Sockcom::sendd(Sequence<float,VectorXf> &seq,int thrnum){
-  float *senddouble = new float[seq.size()*(seq.vecsize()+1)];
+  float *sendfloat = new float[seq.size()*(seq.vecsize()+1)];
   float timm;
   VectorXf vvv(seq.vecsize());
   for(int ii = 0;ii<seq.size();ii++){
     seq.get(ii,timm,vvv);
-    senddouble[ii*(seq.vecsize()+1)] = timm; 
+    sendfloat[ii*(seq.vecsize()+1)] = timm; 
     for(int jj = 0;jj<seq.vecsize();jj++){
-      senddouble[ii*(seq.vecsize()+1) + jj+1] = vvv(jj);
+      sendfloat[ii*(seq.vecsize()+1) + jj+1] = vvv(jj);
     }
   }
-  int ret = send( sock[thrnum] , senddouble , seq.size()*(seq.vecsize()+1)*sizeof(float) , 0 );
-  delete[] senddouble;
+  int ret = 0;
+  while(1){
+    if(seq.size()*(seq.vecsize()+1)*sizeof(float) - ret > maxsize){
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) , maxsize , 0 );
+    }else{
+      ret += send( sock[thrnum] , sendfloat + ret/sizeof(float) , seq.size()*(seq.vecsize()+1)*sizeof(float) - ret , 0 );
+    }
+    if(ret >= seq.size()*(seq.vecsize()+1)*sizeof(float)){break;}
+  }
+  delete[] sendfloat;
+  return ret;
   return ret;
 }
 
@@ -264,6 +313,7 @@ int Sockcom::recvv(std::string &s,int thrnum){
   char *buf = new char[maxsize];
   int ret = recv( sock[thrnum] , buf , maxsize*sizeof(char) , 0 );
   char *buff = new char[ret];
+
   for(int ii=0;ii<ret;ii++){
     buff[ii] = buf[ii];
   }
@@ -280,13 +330,26 @@ int Sockcom::recvv(double *num,int thrnum){
 }
 
 int Sockcom::recvv(float *num,int thrnum){
-  int ret = recv( sock[thrnum] , num , sizeof(double) , 0 );
+  int ret = recv( sock[thrnum] , num , sizeof(float) , 0 );
+  return ret;
+}
+
+int Sockcom::recvv(int *num,int thrnum){
+  int ret = recv( sock[thrnum] , num , sizeof(int) , 0 );
   return ret;
 }
 
 int Sockcom::recvv(VectorXd &eigenV,int thrnum){
  double *revd = new double[eigenV.size()];
- int ret = recv( sock[thrnum] , revd , eigenV.size()*sizeof(double) , 0 );
+ int ret=0;
+ while(1){
+   if(eigenV.size()*sizeof(double) - ret > maxsize){
+     ret += recv( sock[thrnum] , revd + ret/sizeof(double) , maxsize , 0 );
+   }else{
+    ret += recv( sock[thrnum] , revd + ret/sizeof(double) , eigenV.size()*sizeof(double) - ret , 0 );
+   }
+   if(ret>=eigenV.size()*sizeof(double)){break;}
+ }
   for(int ii = 0;ii<eigenV.size();ii++){
     eigenV(ii) = revd[ii];
   }
@@ -295,8 +358,16 @@ int Sockcom::recvv(VectorXd &eigenV,int thrnum){
 }
 
 int Sockcom::recvv(VectorXf &eigenV,int thrnum){
-  float *revd = new float[eigenV.size()];
- int ret = recv( sock[thrnum] , revd , eigenV.size()*sizeof(float) , 0 );
+float *revd = new float[eigenV.size()];
+int ret=0;
+ while(1){
+   if(eigenV.size()*sizeof(float) - ret > maxsize){
+     ret += recv( sock[thrnum] , revd + ret/sizeof(float) , maxsize , 0 );
+   }else{
+    ret += recv( sock[thrnum] , revd + ret/sizeof(float) , eigenV.size()*sizeof(float) - ret , 0 );
+   }
+   if(ret>=eigenV.size()*sizeof(float)){break;}
+ } 
   for(int ii = 0;ii<eigenV.size();ii++){
     eigenV(ii) = revd[ii];
   }
@@ -308,11 +379,13 @@ int Sockcom::recvv(std::vector<VectorXd> &vectorV,int n,int an,int thrnum){
   double *revd = new double[n*an];
   int ret=0;
   while(1){
-    ret += recv( sock[thrnum] , revd+ret , maxsize , 0 );
-    if(ret>=n*an*sizeof(double)){
-      break;
-    }
-  }
+   if(an*(n+1)*sizeof(double) - ret > maxsize){
+     ret += recv( sock[thrnum] , revd + ret/sizeof(double) , maxsize , 0 );
+   }else{
+    ret += recv( sock[thrnum] , revd + ret/sizeof(double) , an*(n+1)*sizeof(double) - ret , 0 );
+   }
+   if(ret>=an*(n+1)*sizeof(double)){break;}
+ }
   int ii = 0;
   int retd = ret/sizeof(double);
   VectorXd bufv(n);
@@ -330,13 +403,15 @@ int Sockcom::recvv(std::vector<VectorXd> &vectorV,int n,int an,int thrnum){
 
 int Sockcom::recvv(std::vector<VectorXf> &vectorV,int n,int an,int thrnum){
   float *revd = new float[n*an];
-  int ret=0;
+  int ret = 0;
   while(1){
-    ret += recv( sock[thrnum] , revd+ret , maxsize , 0 );
-    if(ret>=n*an*sizeof(float)){
-      break;
-    }
-  }
+   if(an*(n+1)*sizeof(float) - ret > maxsize){
+     ret += recv( sock[thrnum] , revd + ret/sizeof(float) , maxsize , 0 );
+   }else{
+    ret += recv( sock[thrnum] , revd + ret/sizeof(float) , an*(n+1)*sizeof(float) - ret , 0 );
+   }
+   if(ret>=an*(n+1)*sizeof(float)){break;}
+ }
   int ii = 0;
   int retd = ret/sizeof(float);
   VectorXf bufv(n);
@@ -353,40 +428,50 @@ int Sockcom::recvv(std::vector<VectorXf> &vectorV,int n,int an,int thrnum){
 }
 
 int Sockcom::recvv(Sequence<double,VectorXd> &seq,int n,int an,int thrnum){
-  double *revd = new double[n+1];
   int ret=0;
   double timm;
+  double *revd;
   VectorXd bufv(n);
+  revd = new double[an*(n+1)];
   while(1){
-    ret += recv( sock[thrnum] , revd , (n+1)*sizeof(double) , 0 );
-    timm = revd[0];
+    if(an*(n+1)*sizeof(double)- ret > maxsize){
+      ret += recv( sock[thrnum] , revd + ret/sizeof(double) , maxsize , 0 );
+    }else{
+      ret += recv( sock[thrnum] , revd + ret/sizeof(double) , an*(n+1)*sizeof(double)- ret , 0 );
+    }
+    if(ret>=an*(n+1)*sizeof(double)){break;}
+  }
+  for(int ii=0;ii<an;ii++){
+    timm = (double)revd[ii*(n+1)];
     for(int jj=1;jj<n+1;jj++){
-      bufv(jj-1) = revd[jj];
+      bufv(jj-1) = (double)revd[ii*(n+1) + jj];
     }
     seq.push_back(timm,bufv);
-    if(ret>=(n+1)*an*sizeof(double)){
-      break;
-    }
   }
   delete[] revd;
   return ret;
 }
 
 int Sockcom::recvv(Sequence<float,VectorXf> &seq,int n,int an,int thrnum){
-  float *revd = new float[n+1];
   int ret=0;
   float timm;
+  float *revd;
   VectorXf bufv(n);
+  revd = new float[an*(n+1)];
   while(1){
-    ret += recv( sock[thrnum] , revd , (n+1)*sizeof(float) , 0 );
-    timm = revd[0];
+    if(an*(n+1)*sizeof(float)- ret > maxsize){
+      ret += recv( sock[thrnum] , revd + ret/sizeof(float) , maxsize , 0 );
+    }else{
+      ret += recv( sock[thrnum] , revd + ret/sizeof(float) , an*(n+1)*sizeof(float)- ret , 0 );
+    }
+    if(ret>=an*(n+1)*sizeof(float)){break;}
+  }
+  for(int ii=0;ii<an;ii++){
+    timm = (float)revd[ii*(n+1)];
     for(int jj=1;jj<n+1;jj++){
-      bufv(jj-1) = revd[jj];
+      bufv(jj-1) = (float)revd[ii*(n+1) + jj];
     }
     seq.push_back(timm,bufv);
-    if(ret>=(n+1)*an*sizeof(float)){
-      break;
-    }
   }
   delete[] revd;
   return ret;
@@ -430,31 +515,22 @@ void Sockcom_s::sock_func(void *send){
   std::cout << buffer << std::endl;
   buffer = "connectted";
   sendd(buffer,thnum);
-  sock_functest(thnum);
+  sock_funccontent(thnum);
 }
 
-void Sockcom_s::sock_functest(int thnum){
+void Sockcom_s::sock_funccontent(int thnum){
   std::string st;
   recvv(st,thnum);
   std::cout << st << std::endl;
-  VectorXf hoge(6);
-  std::vector<VectorXf> hogevector;
+  VectorXd hoge(6);
   hoge(0) = 1;hoge(1) = 2;hoge(2) = 3;
   hoge(3) = 4;hoge(4) = 5;hoge(5) = 6;
-  float timmm;
-  VectorXf hov(6);
-  Sequence<float,VectorXf> hogeseq;
-  for(int ii=0;ii<1000;ii++){
-    timmm = 0.1*(float)ii;
-    for(int jj=0;jj<6;jj++){
-      hoge(jj) = ii*jj;
-      hov(jj) = hoge(jj);
-    }
-    hogeseq.push_back(timmm,hov);
-    hogevector.push_back(hov);
-  }
-  //hogeseq.show(99);
-  sendd(hogeseq,thnum);
+  sendd(hoge,thnum);
+  VectorXf hogef(6);
+  recvv(hogef,thnum);
+  for(int ii=0;ii<hogef.size()-1;ii++){
+    std::cout << hogef(ii) << "," << std::flush; 
+  }std::cout << hogef(hogef.size()-1) << std::endl;
   exitsock();
 }
 
@@ -499,17 +575,23 @@ void Sockcom_c::sock_func(void *send){
   sendd(buffer,thnum); 
   recvv(buffer,thnum);
   std::cout << buffer << std::endl;
-  sock_functest(thnum);
+  sock_funccontent(thnum);
 }
 
-void Sockcom_c::sock_functest(int thnum){
-  Sequence<float,VectorXf> hogeseq;
+void Sockcom_c::sock_funccontent(int thnum){
+  Sequence<double,VectorXd> hogeseq;
   std::vector<VectorXf> hogevector;
   std::string st;
   st = "start";
   sendd(st,thnum);
-  recvv(hogeseq,6,100,thnum);
-  hogeseq.show(99);
+  
+  VectorXd hogev(6);
+  recvv(hogev,thnum);
+  PRINT_MAT(hogev);
+  VectorXf hogef(6);
+  hogef(0) = 6;hogef(1) = 5;hogef(2) = 4;
+  hogef(3) = 3;hogef(4) = 2;hogef(5) = 1;
+  sendd(hogef,thnum);
   exitsock();
   exitallsock();
 }

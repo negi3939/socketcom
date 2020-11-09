@@ -13,6 +13,8 @@
 int main(){
   Sockcom_c *comv;
   comv= new Sockcom_c();
+  //comv= new Sockcom_c(2000,"192.168.4.3");//newserver
   comv->waittoallend();
   delete comv;
 }
+

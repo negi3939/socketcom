@@ -25,7 +25,7 @@ int main(){
     double ttt;
     std::cout << "size is "<<  hoge.size() << std::endl;
     VectorXd geta;
-    hoge.show(2);
+    hoge.show(0);
      
 }
 #endif

@@ -63,6 +63,7 @@ class Sockcom {
     int recvv(std::string &s,int thrnum);
     int recvv(double *num,int thrnum);
     int recvv(float *num,int thrnum);
+    int recvv(int *num,int thrnum);
     int recvv(VectorXd &eigenV,int thrnum);
     int recvv(VectorXf &eigenV,int thrnum);
     int recvv(std::vector<VectorXd> &vectorV,int n,int an,int thrnum);
@@ -81,7 +82,7 @@ class Sockcom_s : public Sockcom{
     Sockcom_s(int p,char *ipp);
     ~Sockcom_s();
     void sock_func(void *send);
-    void sock_functest(int thnum);
+    virtual void sock_funccontent(int thnum);
 };
 
 class Sockcom_c : public Sockcom{
@@ -92,7 +93,7 @@ class Sockcom_c : public Sockcom{
     Sockcom_c(int p,char *h);
     ~Sockcom_c();
     void sock_func(void *send);
-    void sock_functest(int thnum);
+    virtual void sock_funccontent(int thnum);
 };
 
 #endif
