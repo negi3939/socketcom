@@ -22,6 +22,7 @@ Sockcom::Sockcom(){
   max_clinum = 10;
   endfl = 0;
   endallfl = 0;
+  maxsize = 1024;
 }
 
 Sockcom::~Sockcom(){}
@@ -157,9 +158,9 @@ int Sockcom::sendd(void *buf,int len,int thrnum){
 }
 int Sockcom::sendd(std::string s,int thrnum){
   int ret;
-  char *sendch = new char[s.length()+1];
+  char *sendch = new char[maxsize];
   std::strcpy(sendch,s.c_str());
-  ret = send( sock[thrnum] , sendch , s.length(), 0 );
+  ret = send( sock[thrnum] , sendch , maxsize*sizeof(char), 0 );
   delete[] sendch;
   return ret;
 }
@@ -255,13 +256,13 @@ int Sockcom::sendd(Sequence<float,VectorXf> &seq,int thrnum){
 }
 
 int Sockcom::recvv(void *buf,int thrnum){
-  int ret = recv( sock[thrnum] , buf , MAX_SIZE , 0 );
+  int ret = recv( sock[thrnum] , buf , maxsize , 0 );
   return ret;
 }
 
 int Sockcom::recvv(std::string &s,int thrnum){
-  char *buf = new char[MAX_SIZE];
-  int ret = recv( sock[thrnum] , buf , MAX_SIZE , 0 );
+  char *buf = new char[maxsize];
+  int ret = recv( sock[thrnum] , buf , maxsize*sizeof(char) , 0 );
   char *buff = new char[ret];
   for(int ii=0;ii<ret;ii++){
     buff[ii] = buf[ii];
@@ -307,7 +308,7 @@ int Sockcom::recvv(std::vector<VectorXd> &vectorV,int n,int an,int thrnum){
   double *revd = new double[n*an];
   int ret=0;
   while(1){
-    ret += recv( sock[thrnum] , revd+ret , MAX_SIZE , 0 );
+    ret += recv( sock[thrnum] , revd+ret , maxsize , 0 );
     if(ret>=n*an*sizeof(double)){
       break;
     }
@@ -331,7 +332,7 @@ int Sockcom::recvv(std::vector<VectorXf> &vectorV,int n,int an,int thrnum){
   float *revd = new float[n*an];
   int ret=0;
   while(1){
-    ret += recv( sock[thrnum] , revd+ret , MAX_SIZE , 0 );
+    ret += recv( sock[thrnum] , revd+ret , maxsize , 0 );
     if(ret>=n*an*sizeof(float)){
       break;
     }
@@ -452,6 +453,7 @@ void Sockcom_s::sock_functest(int thnum){
     hogeseq.push_back(timmm,hov);
     hogevector.push_back(hov);
   }
+  //hogeseq.show(99);
   sendd(hogeseq,thnum);
   exitsock();
 }

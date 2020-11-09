@@ -3,7 +3,6 @@
 
 using namespace Eigen;
 #define PRINT_MAT(X) std::cout << #X << ":\n" << X << std::endl << std::endl
-#define MAX_SIZE    (1024)
 
 class Structthis{
 	public:
@@ -24,6 +23,7 @@ class Sockcom {
     int max_clinum;
     int endfl;
     int endallfl;
+    int maxsize;
     char *ip;
     char *host;
     int *sock;
