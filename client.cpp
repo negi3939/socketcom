@@ -7,6 +7,7 @@
 #include <Eigen/StdVector>
 #include <vector>
 
+#include "mymath.h"
 #include "sequence.h"
 #include "socketcom.h"
 

@@ -32,12 +32,12 @@ endif
 
 ifeq ($(TARGET),comserver)
 	SOURCE_MAIN = server.cpp
-	SOURCE_SUB = socketcom.cpp sequence.cpp
+	SOURCE_SUB = socketcom.cpp sequence.cpp mymath.cpp
 endif
 
 ifeq ($(TARGET),comclient)
 	SOURCE_MAIN = client.cpp
-	SOURCE_SUB = socketcom.cpp sequence.cpp
+	SOURCE_SUB = socketcom.cpp sequence.cpp mymath.cpp
 endif
 
 ifeq ($(TARGET),sock)

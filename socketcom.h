@@ -2,6 +2,7 @@
 #define COMMINICATION_SCOK_H
 
 using namespace Eigen;
+using namespace Mymath;
 #define PRINT_MAT(X) std::cout << #X << ":\n" << X << std::endl << std::endl
 
 class Structthis{
@@ -24,6 +25,7 @@ class Sockcom {
     int endfl;
     int endallfl;
     int maxsize;
+    int maxstringsize;
     char *ip;
     char *host;
     int *sock;

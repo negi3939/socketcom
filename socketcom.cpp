@@ -14,15 +14,17 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 
+#include "mymath.h"
 #include "sequence.h"
 #include "socketcom.h"
 
 
 Sockcom::Sockcom(){
-  max_clinum = 10;
+  max_clinum = 30;
   endfl = 0;
   endallfl = 0;
   maxsize = 1024;
+  maxstringsize = 10;
 }
 
 Sockcom::~Sockcom(){}
@@ -158,9 +160,9 @@ int Sockcom::sendd(void *buf,int len,int thrnum){
 }
 int Sockcom::sendd(std::string s,int thrnum){
   int ret;
-  char *sendch = new char[maxsize];
+  char *sendch = new char[maxstringsize];
   std::strcpy(sendch,s.c_str());
-  ret = send( sock[thrnum] , sendch , maxsize*sizeof(char), 0 );
+  ret = send( sock[thrnum] , sendch , maxstringsize*sizeof(char), 0 );
   delete[] sendch;
   return ret;
 }
@@ -310,9 +312,18 @@ int Sockcom::recvv(void *buf,int thrnum){
 }
 
 int Sockcom::recvv(std::string &s,int thrnum){
-  char *buf = new char[maxsize];
-  int ret = recv( sock[thrnum] , buf , maxsize*sizeof(char) , 0 );
-  char *buff = new char[ret];
+  char *buf = new char[maxstringsize];
+  //int ret = recv( sock[thrnum] , buf , maxstringsize*sizeof(char) , 0 );
+  int ret = 0;
+  while(1){
+    if(maxstringsize*sizeof(char) - ret > maxsize){
+      ret += recv( sock[thrnum] , buf , maxsize , 0 );
+    }else{
+      ret += recv( sock[thrnum] , buf , maxstringsize*sizeof(char) - ret , 0 );
+    }
+    if(ret >= maxstringsize*sizeof(char)){break;}
+  }
+  char *buff = new char[ret/sizeof(char)];
 
   for(int ii=0;ii<ret;ii++){
     buff[ii] = buf[ii];
@@ -528,9 +539,7 @@ void Sockcom_s::sock_funccontent(int thnum){
   sendd(hoge,thnum);
   VectorXf hogef(6);
   recvv(hogef,thnum);
-  for(int ii=0;ii<hogef.size()-1;ii++){
-    std::cout << hogef(ii) << "," << std::flush; 
-  }std::cout << hogef(hogef.size()-1) << std::endl;
+  showvec(hogef);
   exitsock();
 }
 
@@ -587,7 +596,7 @@ void Sockcom_c::sock_funccontent(int thnum){
   
   VectorXd hogev(6);
   recvv(hogev,thnum);
-  PRINT_MAT(hogev);
+  showvec(hogev);
   VectorXf hogef(6);
   hogef(0) = 6;hogef(1) = 5;hogef(2) = 4;
   hogef(3) = 3;hogef(4) = 2;hogef(5) = 1;
