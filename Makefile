@@ -17,7 +17,7 @@ endif
 
 DIRX = /usr/X11R6/lib
 
-CXXFLAGS = -I /home/jsk/eigen-2.0.17/ -I /home/taka/eigenlib -fpermissive
+CXXFLAGS = -fpermissive
 LDFLAGS	 = -L "$(DIRX)" -lm -pthread -std=c++11
 
 GCCVERSION = $(shell g++ --version | grep ^g++)

@@ -7,16 +7,18 @@ using namespace Eigen;
 template<class Type1,class Type2>
 class Sequence{
     private:
+        int maxdatasize;
         int vecrsize;
         int datasize;
-        std::vector<Type1> time;
-        std::vector<Type2> vec;
+        double *time;
+        double **vec;
     public:
         Sequence();
         Sequence(int n);
         ~Sequence();
         int size();
         int vecsize();
+        void clear();
         void push_back(Type1 l_t,Type2 l_v);
         void get(int n,Type1 &l_t,Type2 &l_v);
         void show(int n);
@@ -24,13 +26,25 @@ class Sequence{
 
 template<class Type1,class Type2>
 Sequence<Type1,Type2>::Sequence(){
-    vecrsize = 6;
+    maxdatasize = 1000;
+    vecrsize = 7;
     datasize = 0;
+    time = new double[maxdatasize];
+    vec = new double*[maxdatasize];
+    for(int ii=0;ii<maxdatasize;ii++){
+        vec[ii] = new double[vecrsize];
+    }
 }
 template<class Type1,class Type2>
 Sequence<Type1,Type2>::Sequence(int n){
+    maxdatasize = 1000;
     vecrsize = n;
     datasize = 0;
+    time = new double[maxdatasize];
+    vec = new double*[maxdatasize];
+    for(int ii=0;ii<maxdatasize;ii++){
+        vec[ii] = new double[vecrsize];
+    }
 }
 template<class Type1,class Type2>
 Sequence<Type1,Type2>::~Sequence(){
@@ -44,10 +58,33 @@ int Sequence<Type1,Type2>::vecsize(){
     return vecrsize;
 }
 template<class Type1,class Type2>
+void Sequence<Type1,Type2>::clear(){
+    datasize = 0;
+    delete[] time;
+    for(int ii=0;ii<maxdatasize;ii++){
+        delete[] vec[ii];
+    }
+    delete[] vec;
+    time = new double[maxdatasize];
+    vec = new double*[maxdatasize];
+    for(int ii=0;ii<maxdatasize;ii++){
+        vec[ii] = new double[maxdatasize];
+    }
+}
+template<class Type1,class Type2>
 void Sequence<Type1,Type2>::push_back(Type1 l_t,Type2 l_v){
-    time.push_back(l_t);
-    vec.push_back(l_v);
-    datasize++;
+    if(datasize<maxdatasize){
+        time[datasize] = l_t;
+        //std::cout << "l_v size " << l_v.size() << ", vecrsize " << vecrsize << std::endl;
+        for(int ii=0;ii<vecrsize;ii++){
+            vec[datasize][ii] = l_v(ii);
+        }
+        datasize++;
+        //std::cout << datasize << " , "<< vec[datasize-1][0] << std::endl;
+    }else{
+        std::cout << "seq has full memorry" << std::endl;
+        exit(0);
+    }
 }
 template<class Type1,class Type2>
 void Sequence<Type1,Type2>::get(int n,Type1 &l_t,Type2 &l_v){
@@ -56,15 +93,19 @@ void Sequence<Type1,Type2>::get(int n,Type1 &l_t,Type2 &l_v){
         exit(0);
     }
     l_t = time[n];
-    l_v = vec[n];
+    l_v.resize(vecrsize);
+    for(int ii=0;ii<vecrsize;ii++){
+        l_v(ii) = vec[n][ii];
+    }
 }
 template<class Type1,class Type2>
 void Sequence<Type1,Type2>::show(int n){
     std::cout << "time is " << time[n] << std::endl;
-    #ifndef GCC3p3
     std::cout << "vec is "<< std::endl;
-    std::cout << vec[n] << std::endl;
-    #endif
+    for(int ii=0;ii<vecrsize-1;ii++){
+    std::cout << vec[n][ii] << " , "<< std::flush;
+    }
+    std::cout << vec[n][vecrsize-1] <<  std::endl;
 }
 
 #endif

@@ -5,6 +5,13 @@ using namespace Eigen;
 using namespace Mymath;
 #define PRINT_MAT(X) std::cout << #X << ":\n" << X << std::endl << std::endl
 
+namespace SOCK{
+  enum FUNC{
+    UNSET=0,
+    SET=1,
+  };
+}
+
 class Structthis{
 	public:
 		void *num;
@@ -29,9 +36,14 @@ class Sockcom {
     char *ip;
     char *host;
     int *sock;
+    SOCK::FUNC fucflag;
     pthread_t *centerthread;
     pthread_t *sockthread;
     pthread_mutex_t mutex;
+    pthread_mutex_t fucset_mutex;
+    pthread_mutex_t return_mutex;
+    void (*running_function)(Sockcom *so);
+    void *funcreturn;
     void connectToServer( int portnum , const char *ip_addr );
     void connectFromClient( int portnum , const char *ip_addr );
     void connectFromClient(void *send);//client数に応じたmulti thread起動のためのthread
@@ -73,6 +85,8 @@ class Sockcom {
     int recvv(Sequence<double,VectorXd> &seq,int n,int an,int thrnum);
     int recvv(Sequence<float,VectorXf> &seq,int n,int an,int thrnum);
     virtual void sock_func(void *send);
+    void setrunnignfunctiuon(void(*f)(Sockcom *));
+    void getfunc_return(void* p);
 };
 
 

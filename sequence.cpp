@@ -11,7 +11,7 @@
 
 #if defined(SEQUENCE_IS_MAIN)
 int main(){
-    Sequence<double,VectorXd> hoge;
+    Sequence<double,VectorXd> hoge(6);
     VectorXd a = VectorXd::Zero(6);
     double t = 1;
     a << 1,2,3,4,5,6;
@@ -19,13 +19,13 @@ int main(){
         hoge.push_back(t,a);
         t += 1.0;
         for(int jj=0;jj<a.size();jj++){
-            a(jj) *= 2; 
+            a(jj) *= 2;
         }
     }
     double ttt;
     std::cout << "size is "<<  hoge.size() << std::endl;
     VectorXd geta;
-    hoge.show(0);
+    hoge.show(7);
      
 }
 #endif

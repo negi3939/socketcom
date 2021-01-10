@@ -25,6 +25,9 @@ Sockcom::Sockcom(){
   endallfl = 0;
   maxsize = 1024;
   maxstringsize = 10;
+  fucflag = SOCK::UNSET;
+  pthread_mutex_init(&fucset_mutex,NULL);
+  pthread_mutex_init(&return_mutex,NULL);
 }
 
 Sockcom::~Sockcom(){}
@@ -492,6 +495,19 @@ void Sockcom::sock_func(void *send){
   std::cout << "Override this function! " << std::endl;
 }
 
+void Sockcom::setrunnignfunctiuon(void(*f)(Sockcom *)){
+  running_function = f;
+  pthread_mutex_lock(&fucset_mutex);
+  fucflag = SOCK::SET;
+  pthread_mutex_unlock(&fucset_mutex);
+}
+
+void Sockcom::getfunc_return(void* p){
+  pthread_mutex_lock(&return_mutex);
+  p = funcreturn;
+  pthread_mutex_unlock(&return_mutex);
+}
+
 Sockcom_s::Sockcom_s(){
   std::cout << "this is server" << std::endl;
   port = 2000;
@@ -530,7 +546,7 @@ void Sockcom_s::sock_func(void *send){
 }
 
 void Sockcom_s::sock_funccontent(int thnum){
-  std::string st;
+  /*std::string st;
   recvv(st,thnum);
   std::cout << st << std::endl;
   VectorXd hoge(6);
@@ -540,9 +556,22 @@ void Sockcom_s::sock_funccontent(int thnum){
   VectorXf hogef(6);
   recvv(hogef,thnum);
   showvec(hogef);
-  exitsock();
-}
+  exitsock();*/
 
+  SOCK::FUNC l_fucflag;
+  while(1){
+    pthread_mutex_lock(&fucset_mutex);
+    l_fucflag = fucflag;
+    pthread_mutex_unlock(&fucset_mutex);
+    if(l_fucflag==SOCK::SET){break;}
+  }
+  while(1){
+    pthread_mutex_lock(&return_mutex);
+    running_function(this);
+    pthread_mutex_unlock(&return_mutex);
+    usleep(10000);
+  }
+}
 
 Sockcom_c::Sockcom_c() : Sockcom(){
   std::cout << "this is client" << std::endl;
@@ -588,8 +617,8 @@ void Sockcom_c::sock_func(void *send){
 }
 
 void Sockcom_c::sock_funccontent(int thnum){
-  Sequence<double,VectorXd> hogeseq;
-  std::vector<VectorXf> hogevector;
+  /*please override this function*/
+  /*std::vector<VectorXf> hogevector;
   std::string st;
   st = "start";
   sendd(st,thnum);
@@ -602,7 +631,19 @@ void Sockcom_c::sock_funccontent(int thnum){
   hogef(3) = 3;hogef(4) = 2;hogef(5) = 1;
   sendd(hogef,thnum);
   exitsock();
-  exitallsock();
+  exitallsock();*/
+  /*
+  SOCK::FUNC l_fucflag;
+  while(1){
+    pthread_mutex_lock(&fucset_mutex);
+    l_fucflag = fucflag;
+    pthread_mutex_unlock(&fucset_mutex);
+    if(l_fucflag==SOCK::SET){break;}
+  }
+    pthread_mutex_lock(&return_mutex);
+    running_function();
+    pthread_mutex_unlock(&return_mutex);
+  */
 }
 
 #if defined(COMMCLIENT_IS_MAIN)
