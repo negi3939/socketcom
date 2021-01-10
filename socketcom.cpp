@@ -508,6 +508,12 @@ void Sockcom::getfunc_return(void* p){
   pthread_mutex_unlock(&return_mutex);
 }
 
+void Sockcom::setfuncreturn(void* p){
+  pthread_mutex_lock(&return_mutex);
+  funcreturn = p;
+  pthread_mutex_unlock(&return_mutex);
+}
+
 Sockcom_s::Sockcom_s(){
   std::cout << "this is server" << std::endl;
   port = 2000;

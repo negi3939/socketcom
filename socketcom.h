@@ -87,6 +87,7 @@ class Sockcom {
     virtual void sock_func(void *send);
     void setrunnignfunctiuon(void(*f)(Sockcom *));
     void getfunc_return(void* p);
+    void setfuncreturn(void* p);
 };
 
 
